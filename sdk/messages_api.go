@@ -2,14 +2,13 @@ package webexteams
 
 import (
 	"fmt"
+	"github.com/go-resty/resty/v2"
+	"github.com/google/go-querystring/query"
+	"github.com/peterhellberg/link"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/go-resty/resty/v2"
-	"github.com/google/go-querystring/query"
-	"github.com/peterhellberg/link"
 )
 
 // MessagesService is the service to communicate with the Messages API endpoint
@@ -104,30 +103,35 @@ func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateReque
 
 	for _, file := range messageCreateRequest.Files {
 		if _, err := os.Stat(file); err == nil {
-			name := filepath.Base(file)
+			//name := filepath.Base(file)
+			name := "files"
 			abs, err := filepath.Abs(file)
 			if err == nil {
 				attachments[name] = abs
-				fmt.Println(name)
 			}
 		}
 	}
 
-	response, err := RestyClient.R().
-		SetFiles(attachments).
-		SetFormData(map[string]string{
-			"roomId": messageCreateRequest.RoomID,
-			"text":   messageCreateRequest.Markdown,
-		}).
-		SetResult(&Message{}).
-		SetError(&Error{}).
-		Post(path)
+	var response *resty.Response
+	var err error
 
-		/*	response, err := RestyClient.R().
+	if len(attachments) != 0 {
+		response, err = RestyClient.R().
+			SetFiles(attachments).
+			SetFormData(map[string]string{
+				"roomId": messageCreateRequest.RoomID,
+				"text":   messageCreateRequest.Markdown,
+			}).
+			SetResult(&Message{}).
+			SetError(&Error{}).
+			Post(path)
+	} else {
+		response, err = RestyClient.R().
 			SetBody(messageCreateRequest).
 			SetResult(&Message{}).
 			SetError(&Error{}).
-			Post(path)*/
+			Post(path)
+	}
 
 	if err != nil {
 		return nil, nil, err
