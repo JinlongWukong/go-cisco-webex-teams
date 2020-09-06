@@ -2,6 +2,8 @@ package webexteams
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -98,12 +100,33 @@ The files parameter is an array, which accepts multiple values to allow for futu
 func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateRequest) (*Message, *resty.Response, error) {
 
 	path := "/messages/"
+	attachments := make(map[string]string)
+
+	for _, file := range messageCreateRequest.Files {
+		if _, err := os.Stat(file); err == nil {
+			name := filepath.Base(file)
+			abs, err := filepath.Abs(file)
+			if err == nil {
+				attachments[name] = abs
+			}
+		}
+	}
 
 	response, err := RestyClient.R().
-		SetBody(messageCreateRequest).
+		SetFiles(attachments).
+		SetFormData(map[string]string{
+			"roomId": messageCreateRequest.RoomID,
+			"text":   messageCreateRequest.Markdown,
+		}).
 		SetResult(&Message{}).
 		SetError(&Error{}).
 		Post(path)
+
+		/*	response, err := RestyClient.R().
+			SetBody(messageCreateRequest).
+			SetResult(&Message{}).
+			SetError(&Error{}).
+			Post(path)*/
 
 	if err != nil {
 		return nil, nil, err
