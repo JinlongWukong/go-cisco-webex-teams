@@ -108,6 +108,7 @@ func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateReque
 			abs, err := filepath.Abs(file)
 			if err == nil {
 				attachments[name] = abs
+				fmt.Println(name)
 			}
 		}
 	}
