@@ -109,6 +109,10 @@ func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateReque
 			if err == nil {
 				attachments[name] = abs
 			}
+		} else if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			//clear map
+			attachments = make(map[string]string)
+			break
 		}
 	}
 
