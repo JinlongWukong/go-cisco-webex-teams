@@ -102,16 +102,21 @@ func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateReque
 	attachments := make(map[string]string)
 
 	for _, file := range messageCreateRequest.Files {
-		if _, err := os.Stat(file); err == nil {
+		if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+			//remote files
+			attachments = make(map[string]string)
+			break
+		} else if _, err := os.Stat(file); err == nil {
+			//local files
 			//name := filepath.Base(file)
 			name := "files"
 			abs, err := filepath.Abs(file)
 			if err == nil {
 				attachments[name] = abs
 			}
-		} else if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
-			//clear map
-			attachments = make(map[string]string)
+		} else {
+			messageCreateRequest.Markdown = fmt.Sprint("**Error:** ", file, " **Not Found!!**\n")
+			messageCreateRequest.Files = nil
 			break
 		}
 	}
