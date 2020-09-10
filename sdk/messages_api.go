@@ -115,7 +115,7 @@ func (s *MessagesService) CreateMessage(messageCreateRequest *MessageCreateReque
 				attachments[name] = abs
 			}
 		} else {
-			messageCreateRequest.Markdown = fmt.Sprint("**Error:** ", file, " **Not Found!!**\n")
+			messageCreateRequest.Markdown += fmt.Sprint("  \n**Error:** attachment ->", file, " **Not Found!!**\n")
 			messageCreateRequest.Files = nil
 			break
 		}
